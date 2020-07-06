@@ -1,26 +1,135 @@
 class:: NasalDemons
-summary:: A simple audio volume gain plugin
-related:: TODO
-categories:: UGens>TODO
+summary:: Play arbitrary memory regions
+categories:: UGens>Generators
 
 description::
 
-A simple audio volume gain plugin
-
+The name "Nasal Demons" comes from a metaphor to describe what could happen when a program produces Undefined Behavior, such as when accessing random or out-of-bounds memory addresses.
+WARNING::
+Although it can be used more or less "safely" by obtaining valid memory ranges from your OS, this UGen is very likely to crash the server. Use at your own risk!
+::
 
 classmethods::
 
-method::ar, kr
+method::ar
 
-argument::TODO
+argument::numChannels
+Number of desired output channels. Treats the memory block as an interleaved buffer: if numChannels==2, from a sequence of values [1,2,3,4], channel 0 will get [1,3] and channel 1 will get [2,4]
 
-argument::TODO
+argument::addr
+a string representing a memory address, the beginning of the block to read. It's read only at creation time, and gets automatically converted to four integers by ::link::*hexAddrToArgs::. Not modulateable.
+
+argument::size
+number of subsequent bytes to be read after addr. Modulateable (although this doesn't mean you are guaranteed not to crash the server).
+
+argument::loop
+1: loop the memory range. 0: when end of the block is reached, set the done flag and stop. Modulateable.
+
+argument::rate
+Playback rate. Modulateable.
+note::
+Although no interpolation is performed, negative and fractional rates are allowed, .
+::
+
+subsection:: Address Conversions
+
+method::hexAddrToArgs
+Converts a string representing an hex memory address to four integers, which is the format accepted as input by this ugen
+argument::hexAddrString
+A string representing a memory address, like "7ffe65d7d000"
+
+method::hexAddrsToSize
+Converts a pair of strings, representing the bounds of a memory block, to their size in bytes.
+argument::addrLo
+argument::addrHi
+
+subsection:: Getting Addresses (Linux)
+The following methods were developed and tested on Linux only.
+
+method::getMemoryAddresses
+Parses memory addresses from /proc/s.pid/mem. Server needs to be booted.
+returns:: an array containing a pair of address strings for each block, like [ [addrLo, addrHi], [addrLo, addrHi], ... ]
+
+method::getHeapAddresses
+Parses /proc/s.pid/mem to find addresses marked as [heap]
+returns:: an array containing a pair of address strings for each block, like [ [addrLo, addrHi], [addrLo, addrHi], ... ]
+
+method::getStackAddresses
+Parses /proc/s.pid/mem to find addresses marked as [stack]
+returns:: an array containing a pair of address strings for each block, like [ [addrLo, addrHi], [addrLo, addrHi], ... ]
 
 
 examples::
-
+WARNING::
+Expect ridiculously loud and "bad" output values. Beware of volume and be responsible for your health and equipment. You could, for example, clip, fold, wrap or limit the output.
+::
 code::
 
-{ NasalDemons.ar(/* TODO */) }.play
+(
+s.waitForBoot{
+    ~ranges = NasalDemons.getMemoryAddresses;
+    ~heap = NasalDemons.getHeapAddresses;
+    ~stack = NasalDemons.getStackAddresses;
+}
+)
 
+// looping your heap:
+{ NasalDemons.ar(1,~heap.first[0], NasalDemons.hexAddrsToSize(*~heap.first) ) }.play;
+
+// clipping limits it to a more reasonable range
+{ NasalDemons.ar(2,~heap.first[0], NasalDemons.hexAddrsToSize(*~heap.first) ).clip2(1) }.play;
+
+// looping multiple, random blocks
+(
+Ndef(\nasal){
+    var chosen = {~ranges.choose}!4;
+    var nasal = chosen.collect{|range|
+        NasalDemons.ar(1,range.first, NasalDemons.hexAddrsToSize(*range))
+    };
+    Splay.ar(nasal);
+}.mold(2).play;
+)
+
+// not looping:
+// this function will create a synth that frees itself when reaching the end of the memory block
+// after the synth is freed, the function calls itself again to create a new one
+~playRange = {|range_n|
+    var synth = {
+        var range = if(range_n.isNil){~ranges.choose}{~ranges@@range_n};
+        n = NasalDemons.ar(1,range.first,NasalDemons.hexAddrsToSize(*range),0;
+        FreeSelfWhenDone.kr(n);
+        n!2
+    }.play;
+    synth.onFree{~playRange.value(if(range_n.isNil){nil}{range_n+1})}
+};
+
+// play all ranges in sequence
+~playRange.value(0)
+
+// or randomly
+~playRange.value
+
+// looping on and off with mousebutton
+(
+{
+    var range = ~ranges.choose;
+    NasalDemons.ar(
+        1, range.first, NasalDemons.hexAddrsToSize(*range),
+        loop: MouseButton.kr(0,2)
+    )
+}.play
+)
+
+// rate modulation: a nice major chord, so to say
+{NasalDemons.ar(2,~heap.first[0],NasalDemons.hexAddrsToSize(*~heap.first),1, [1,1.25,1.5,15/8]).clip2(0.1).sum}.play
+
+(
+// use your mouseXY here
+{
+    NasalDemons.ar(2,~heap.first[0],
+      NasalDemons.hexAddrsToSize(*~heap.first) / MouseX.kr(10,200), 1,
+      MouseY.kr(1,1000)*[1,1.25, 1.5, 15/8]
+    ).clip2(0.1).sum
+}.play;
+)
 ::

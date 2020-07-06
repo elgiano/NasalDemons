@@ -9,16 +9,25 @@ namespace NasalDemons {
 
 class NasalDemons : public SCUnit {
 public:
-    NasalDemons();
+  NasalDemons();
 
-    // Destructor
-    // ~NasalDemons();
+  // Destructor
+  // ~NasalDemons();
 
 private:
-    // Calc function
-    void next(int nSamples);
+  // Calc function
+  void next(int nSamples);
+  void readStartAddr();
+  bool advancePtr();
 
-    // Member variables
+  // Member variables
+  float *mPtr;
+  unsigned long mAddrStart;
+  int mSize, mPos;
+  int mLoop, mPost;
+  float mFracPos, mRate;
+
+  double mRFloatSize;
 };
 
 } // namespace NasalDemons

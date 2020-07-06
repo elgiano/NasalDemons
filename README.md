@@ -1,8 +1,10 @@
 # Nasal Demons
 
+A SuperCollider UGen to play arbitrary memory regions
+
 Author: Gianluca Elia
 
-A simple audio volume gain plugin
+This has been developed and tested only on Linux so far
 
 ### Requirements
 

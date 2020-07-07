@@ -9,13 +9,16 @@ NasalDemons : MultiOutUGen {
 	}
 	argNamesInputsOffset { ^2 }
 
+	*hexToInt {|hexString|
+			^hexString.injectr(0){|t,c,n| 16**n * c.digit + t}
+	}
+
 	*hexAddrToArgs{|hexAddrString|
-		^hexAddrString.padLeft(16,"0").clump(4).collect(_.hexToInt)
+		^hexAddrString.padLeft(16,"0").clump(4) collect: this.hexToInt(_)
 	}
 
 	*hexAddrsToSize{|addrLo, addrHi|
-		^[addrLo,addrHi].collect{|a| a.injectr(0){|t,c,n| 16**n *c.digit + t} }
-		.differentiate[1]
+		^[addrLo,addrHi].collect(this.hexToInt(_)).differentiate[1]
 	}
 
 	// Get Memory Addresses

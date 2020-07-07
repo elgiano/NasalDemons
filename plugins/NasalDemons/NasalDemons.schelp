@@ -17,7 +17,7 @@ argument::numChannels
 Number of desired output channels. Treats the memory block as an interleaved buffer: if numChannels==2, from a sequence of values [1,2,3,4], channel 0 will get [1,3] and channel 1 will get [2,4]
 
 argument::addr
-a string representing a memory address, the beginning of the block to read. It's read only at creation time, and gets automatically converted to four integers by ::link::*hexAddrToArgs::. Not modulateable.
+a string representing a memory address, the beginning of the block to read. It's read only at creation time, and gets automatically converted to four integers by link::#*hexAddrToArgs:: Not modulateable.
 
 argument::size
 number of subsequent bytes to be read after addr. Modulateable (although this doesn't mean you are guaranteed not to crash the server).
@@ -30,6 +30,9 @@ Playback rate. Modulateable.
 note::
 Although no interpolation is performed, negative and fractional rates are allowed, .
 ::
+
+argument::post
+If > 0, post current memory address to console once per audio processing block
 
 subsection:: Address Conversions
 

@@ -1,0 +1,30 @@
+class:: NasalDemonsMemBlock
+summary:: NasalDemons util to represent a memory block
+categories:: UGens>Generators
+
+description::
+Contains hexadecimal strings representing the bounds of a memory address block. For methods to get some of those from an scsynth running process, see link::Classes/NasalDemons#Getting Memory Blocks::.
+
+classmethods::
+
+method::new
+
+argument::addrLo
+An hexadecimal string representing the lowest address (start) of the memory block
+argument::addrHi
+An hexadecimal string representing the highest address (end) of the memory block
+
+
+method::hexToInt
+
+Converts an hexadecimal memory address string to an integer. Used internally by link::#-addrLoForUGen:: and link::#-bytes::.
+argument::hexString
+A string representing a memory address, like "7ffe65d7d000"
+
+instancemethods::
+
+method::addrLoForUGen
+returns:: an array of four integers, representing the lowest address of this memory block, broken in four parts to be correctly sent to a NasalDemons UGen
+
+method::bytes
+returns:: the size in bytes of this memory block

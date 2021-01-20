@@ -39,7 +39,7 @@ subsection::Getting Memory Blocks
 note::The following methods were developed and tested on Linux and Mac platforms only. They won't work on Windows, sorry.::
 note::Since these functions are about getting addresses from scsynth's memory space, the server needs to be booted for any of them to work::
 
-method::getMemoryBlocks
+method::getReadableBlocks
 Linux: parses memory addresses from /proc/s.pid/mem.
 Mac: parses memory addresses from vmmap output
 returns:: an array of link::Classes/NasalDemonsMemBlock::s for each block
@@ -63,7 +63,7 @@ code::
 
 (
 s.waitForBoot{
-  ~blocks = NasalDemons.getMemoryBlocks;
+  ~blocks = NasalDemons.getReadableBlocks;
   ~heap = NasalDemons.getHeapBlocks;
   ~stack = NasalDemons.getStackBlocks;
 }
